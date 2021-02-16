@@ -1,7 +1,5 @@
 ########################################
 # Creating figures for the Lepidoptera paper
-
-
 ########################################
 
 # loading libraries
@@ -16,9 +14,6 @@ library(vegan)
 library(ggcorrplot)
 
 ##########################################
-# setting working directory
-
-# setwd("C:\\Users\\mally\\Desktop")
 
 ##############
 # loading data
@@ -238,12 +233,12 @@ for (i in unique(df_2$region)){
   }
 }
 
-
 datas = df_4[,c("region","native","pred","upper","lower")]
 
-Fig3 <- ggplot(df_2,aes(x=native)) + 
-  geom_point(aes(y=established)) + 
-  geom_smooth(data = datas, mapping = aes(ymin = lower, ymax = upper, y = pred), stat = "identity", color = "black", size = 0.5) +
+Fig3 <- ggplot(df_2, aes(x = native, y = established)) + 
+  geom_point() + 
+  geom_smooth(data = datas, mapping = aes(ymin = lower, ymax = upper, y = pred), 
+              stat = "identity", color = "black", size = 0.5) +
   scale_x_log10() + 
   scale_y_log10(labels = comma, breaks = c(1,10,100)) + 
   facet_wrap(.~region, nrow = 2) + 
@@ -256,27 +251,15 @@ save_plot("Fig3_nonnative-vs-world_2021-02.png", Fig3, base_width = 22, base_hei
 save_plot("Fig3_nonnative-vs-world_2021-02.pdf", Fig3, base_width = 22, base_height = 12, units = "cm", dpi = 400)
 
 dev.off()
-
-
-
 ######## END FIGURE 3 ########
 
-
-
-
-
-
 ######## FIGURE 4 - for all 10 regions pooled ########
-
-
-
 df_world <- EstvsW %>% filter(sum_regions > 0) %>% arrange(desc(world))
 
 Est_long2 <- gather(df_world, "region", "established", 4:13) # changing from wide to long format
 
 ### adding a column of predicted establishments based on native numbers
 df_1_world <- Est_long2 %>% group_by(region) %>% mutate(pred = (world*sum_regions)/world)
-
 
 ### adding lower and upper bounds - upper and lower 1% quantiles widened by bonferroni type correction
  df_2_world <- df_1_world %>%
@@ -289,22 +272,23 @@ df_1_world <- Est_long2 %>% group_by(region) %>% mutate(pred = (world*sum_region
     prob = world/sum(world)))
 
 
-datas2 = df_2_world[,c("world", "pred", "upper", "lower")]
-df_2_world <- df_2_world %>% select(family, region, world, sum_regions, pred, upper, lower) %>% filter(sum_regions > 0, region == "Australia")
+datas2 <- df_2_world[,c("world", "pred", "upper", "lower")] 
 
-
+df_2_world <- df_2_world %>% select(family, region, world, sum_regions, pred, upper, lower) %>%
+              filter(sum_regions > 0, region == "Australia") 
+##########  Why are you filtering to Australia, when you are trying to get all 10 regions pooled in this figure?##############
 
 ### simple scatterplot of non-native species against world species
 # ggplot(df_2_world2, aes(world, sum_regions)) + geom_point() + scale_x_log10() + scale_y_log10(limits=c(1, 100)) + theme_bw() + xlab("number of world spp.") + ylab("number of non-native spp.")
 
-
-
-Fig4 <- ggplot(df_2_world, aes(x = world)) +
-  geom_point(aes(y = sum_regions)) + 
-  geom_smooth(data = datas2, mapping = aes(ymin = lower, ymax = upper, y = pred), stat = "identity", color = "black", size = 0.5) +     # to add a regression line, add [method = "lm"] to the arguments in geom_smooth() - doesn't give the result I was looking for though...
+Fig4 <- ggplot(df_2_world, aes(x = world, y = sum_regions)) +
+  geom_point() + 
+  geom_smooth(data = datas2, mapping = aes(ymin = lower, ymax = upper, y = pred), 
+              stat = "identity", color = "black", size = 0.5) +     # to add a regression line, add [method = "lm"] to the arguments in geom_smooth() - doesn't give the result I was looking for though...
   scale_x_log10() +
   scale_y_log10(breaks = c(1,10,100)) +
-  theme(panel.background = element_rect(fill = "white"), panel.border = element_rect(linetype = "solid", fill = NA)) +
+  theme(panel.background = element_rect(fill = "white"), 
+        panel.border = element_rect(linetype = "solid", fill = NA)) +
   xlab("world (spp. in family)") +
   ylab("non-natives (spp. in family)") +
   geom_text_repel(data = subset(df_2_world, sum_regions > upper*1 | sum_regions < lower*1),
@@ -314,8 +298,6 @@ save_plot("Fig4_nonnative-vs-world-pooled_2021-02.png", Fig4, base_width = 22, b
 save_plot("Fig4_nonnative-vs-world-pooled_2021-02.pdf", Fig4, base_width = 22, base_height = 15, units = "cm", dpi = 400)
 
 dev.off()
-
-
 ######## END FIGURE 4 ########
 
 
@@ -324,6 +306,28 @@ dev.off()
 
 
 ######## FIGURE 5 - HEATMAP ########
+
+
+Nat_2 <- Nat[,c("superfamily", "family", "world")]
+
+EstvsW <- left_join(Nat_2, Est)
+
+
+### select families with at least 10 established species worlwide, arranged in descending order of world species diversity
+top18 <- EstvsW[EstvsW$"sum_regions" > 9,] %>% arrange(desc(world))
+
+
+### order top18 families
+world_order <- c("Pterophoridae", "Psychidae", "Coleophoridae", "Sphingidae", "Cosmopterygidae", "Gracillariidae", "Depressariidae", "Tineidae", "Oecophoridae", "Gelechiidae", "Lycaenidae", "Pyralidae", "Nymphalidae", "Tortricidae", "Crambidae", "Noctuidae", "Geometridae", "Erebidae")
+
+
+Est_long <- gather(top18,"region","established",4:13) # changing from wide to long format
+
+Nat_long <- gather(Nat,"region","native",3:12) # changing from wide to long format
+
+### join data from Est_long and Nat_long
+df <- Est_long %>% left_join(Nat_long)
+df <- df[,c(1, 2, 6, 3, 4, 5, 7)] # reorder columns into a more reasonable way, with "world" and "sum_regions" referring to the family, and "established" and "native" referring to the region
 
 
 total <- read_tsv("totalLep_2021-01-25.txt")
@@ -432,6 +436,11 @@ dev.off()
 
 
 ######## FIGURE 7 - Correlation matrix ########
+
+
+Nat_2 <- Nat[,c("superfamily", "family", "world")]
+
+EstvsW <- left_join(Nat_2, Est)
 
 
 

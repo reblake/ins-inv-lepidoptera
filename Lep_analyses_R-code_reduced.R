@@ -130,8 +130,8 @@ n3 <- make_scatterplots(native3, "e)", expression(paste("Area (km" ^ "2", ")")),
 
 Fig2 <- plot_grid(n1, a1, n2, a2, n3, a3, ncol = 2)
 
-save_plot("Fig1_Lep_species-area_2021-02.png", Fig1, base_height = 16, base_width = 12)
-save_plot("Fig1_Lep_species-area_2021-02.pdf", Fig1, base_height = 16, base_width = 12)
+save_plot("Fig2_Lep_species-area_2021-02.png", Fig1, base_height = 16, base_width = 12)
+save_plot("Fig2_Lep_species-area_2021-02.pdf", Fig1, base_height = 16, base_width = 12)
 
 dev.off()
 ######## END FIGURE 2 ########
@@ -158,26 +158,46 @@ df <- df[,c(1, 2, 6, 3, 4, 5, 7)] # reorder columns into a more reasonable way, 
 
 
 ### bar plots of world and non-native family diversities
-g1 <- ggplot(top18, aes(x = world, y = factor(family,level = world_order))) +
-  geom_col() +
-  theme(axis.ticks.y = element_blank(), 
-        panel.background = element_rect(fill = "white")) +
-  scale_x_reverse() +
-  scale_y_discrete(position="right") +
-  labs(x=element_blank(),y=element_blank()) 
+g1 <- ggplot(top18, aes(x = world, y = factor(family, level = world_order))) +
+      geom_col() +
+      theme(axis.ticks.y = element_blank(), 
+            panel.background = element_rect(fill = "white"),
+            plot.margin = margin(0, 0, 0, 0.5, "cm"),
+            axis.text.x = element_text(size = 12),
+            axis.text.y = element_blank()) + # (vjust = 0.5, hjust = 5, size = 14)) + 
+      scale_x_reverse() +
+      scale_y_discrete(position="right") +
+      labs(x=element_blank(), y=element_blank()) 
 
 g2 <- ggplot(top18, aes(x = sum_regions, y = factor(family, level = world_order))) +
-  geom_col() +
-  labs(x=element_blank(), y=element_blank()) +
-  theme(axis.text.y = element_blank(), 
-        panel.background = element_rect(fill = "white"), 
-        axis.ticks.y = element_blank())
+      geom_col() +
+      labs(x=element_blank(), y=element_blank()) +
+      theme(axis.text.y = element_blank(),
+            axis.text.x = element_text(size = 12),
+            panel.background = element_rect(fill = "white"), 
+            axis.ticks.y = element_blank(),
+            plot.margin = margin(0, 0, 0, 0, "cm"))
 
+gmid <- ggplot(top18, aes(x = 1, y = factor(family, level = world_order))) + 
+        geom_text(aes(label = factor(family, level = world_order))) +
+      #  geom_segment(aes(x=0.94,xend=0.96,yend=state)) +
+      #  geom_segment(aes(x=1.04,xend=1.065,yend=state)) +
+      #  ggtitle("") +
+        ylab(NULL) +
+        scale_x_continuous(expand=c(0,0),limits=c(0.94,1.065))+
+        theme(axis.title=element_blank(),
+              panel.grid=element_blank(),
+              axis.text.y=element_blank(),
+              axis.ticks.y=element_blank(),
+              panel.background=element_blank(),
+              axis.text.x=element_text(color=NA),
+              axis.ticks.x=element_line(color=NA),
+              plot.margin = unit(c(1,-1,1,-1), "mm"))
 
-Fig1 <- grid.arrange(g1, g2, ncol=2, widths = c(7/12, 5/12))
+Fig1 <- grid.arrange(g1, gmid, g2, ncol = 3, widths = c(4/9, 1.5/9, 4/9))
 
-save_plot("Fig2_top18_world-vs-nonnative_2021-02.png", Fig2, base_width = 22, base_height = 15, units = "cm", dpi = 400)
-save_plot("Fig2_top18_world-vs-nonnative_2021-02.pdf", Fig2, base_width = 22, base_height = 15, units = "cm", dpi = 400)
+save_plot("Fig1_top18_world-vs-nonnative_2021-02.png", Fig2, base_width = 22, base_height = 15, units = "cm", dpi = 400)
+save_plot("Fig1_top18_world-vs-nonnative_2021-02.pdf", Fig2, base_width = 22, base_height = 15, units = "cm", dpi = 400)
 
 dev.off()
 ######## END FIGURE 1 ########

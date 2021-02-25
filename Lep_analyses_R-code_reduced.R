@@ -193,6 +193,27 @@ dev.off()
 
 
 ######## FIGURE 3 - scatterplots "non-native species versus native species" per family for the 10 different regions ########
+Nat_2 <- Nat[,c("superfamily", "family", "world")]
+
+EstvsW <- left_join(Nat_2, Est)
+
+
+### select families with at least 10 established species worlwide, arranged in descending order of world species diversity
+top18 <- EstvsW[EstvsW$"sum_regions" > 9,] %>% arrange(desc(world))
+
+
+### order top18 families
+world_order <- c("Pterophoridae", "Psychidae", "Coleophoridae", "Sphingidae", "Cosmopterygidae", "Gracillariidae", "Depressariidae", "Tineidae", "Oecophoridae", "Gelechiidae", "Lycaenidae", "Pyralidae", "Nymphalidae", "Tortricidae", "Crambidae", "Noctuidae", "Geometridae", "Erebidae")
+
+
+Est_long <- gather(top18,"region","established",4:13) # changing from wide to long format
+
+Nat_long <- gather(Nat,"region","native",3:12) # changing from wide to long format
+
+### join data from Est_long and Nat_long
+df <- Est_long %>% left_join(Nat_long)
+df <- df[,c(1, 2, 6, 3, 4, 5, 7)] # reorder columns into a more reasonable way, with "world" and "sum_regions" referring to the family, and "established" and "native" referring to the region
+
 
 
 # adding a column of predicted establishments based o n native numbers
@@ -241,6 +262,7 @@ Fig3 <- ggplot(df_2, aes(x = native, y = established)) +
               stat = "identity", color = "black", size = 0.5) +
   scale_x_log10() + 
   scale_y_log10(labels = comma, breaks = c(1,10,100)) + 
+  coord_cartesian(ylim = c(1, 100)) + # this improves the plotting by zooming the plot to the data
   facet_wrap(.~region, nrow = 2) + 
   theme_bw() +
   xlab("number of natives in family") + 
@@ -253,13 +275,18 @@ save_plot("Fig3_nonnative-vs-world_2021-02.pdf", Fig3, base_width = 22, base_hei
 dev.off()
 ######## END FIGURE 3 ########
 
+
 ######## FIGURE 4 - for all 10 regions pooled ########
+Nat_2 <- Nat[,c("superfamily", "family", "world")]
+
+EstvsW <- left_join(Nat_2, Est)
+
 df_world <- EstvsW %>% filter(sum_regions > 0) %>% arrange(desc(world))
 
 Est_long2 <- gather(df_world, "region", "established", 4:13) # changing from wide to long format
 
 ### adding a column of predicted establishments based on native numbers
-df_1_world <- Est_long2 %>% group_by(region) %>% mutate(pred = (world*sum_regions)/world)
+df_1_world <- Est_long2 %>% group_by(region) %>% mutate(pred = world*sum(sum_regions)/sum(world))
 
 ### adding lower and upper bounds - upper and lower 1% quantiles widened by bonferroni type correction
  df_2_world <- df_1_world %>%
@@ -287,6 +314,7 @@ Fig4 <- ggplot(df_2_world, aes(x = world, y = sum_regions)) +
               stat = "identity", color = "black", size = 0.5) +     # to add a regression line, add [method = "lm"] to the arguments in geom_smooth() - doesn't give the result I was looking for though...
   scale_x_log10() +
   scale_y_log10(breaks = c(1,10,100)) +
+  coord_cartesian(ylim = c(1, 100)) + # this improves the plotting by zooming the plot to the data
   theme(panel.background = element_rect(fill = "white"), 
         panel.border = element_rect(linetype = "solid", fill = NA)) +
   xlab("world (spp. in family)") +
@@ -420,7 +448,7 @@ p.species <-
   theme(legend.position = "none", axis.text = element_text(size = 12))
 print(p.species)
 
-(Fig6 <- gridExtra::grid.arrange(p.sites, p.species, nrow = 1))
+Fig6 <- gridExtra::grid.arrange(p.sites, p.species, nrow = 1)
 
 save_plot("Fig6_RDA-ordination_2021-02.png", Fig6, base_width = 22, base_height = 15, units = "cm", dpi = 600)
 save_plot("Fig6_RDA-ordination_2021-02.pdf", Fig6, base_width = 22, base_height = 15, units = "cm", dpi = 600)

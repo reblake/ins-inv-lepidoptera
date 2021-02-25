@@ -29,9 +29,7 @@ colnames(Nat) <- c("superfamily", "family", "Australia", "Europe", "Galapagos", 
 
 
 
-######## FIGURE 1 ########
-
-
+######## FIGURE 2 ########
 # Organize your data for your plots
 
 # this creates a data frame of the areas
@@ -122,16 +120,16 @@ n1 <- make_scatterplots(native1, "a)", NULL)
 n2 <- make_scatterplots(native2, "c)", NULL)
 n3 <- make_scatterplots(native3, "e)", expression(paste("Area (km" ^ "2", ")")))
 
-Fig1 <- plot_grid(n1, a1, n2, a2, n3, a3, ncol = 2)
+Fig2 <- plot_grid(n1, a1, n2, a2, n3, a3, ncol = 2)
 
 save_plot("Fig1_Lep_species-area_2021-02.png", Fig1, base_height = 16, base_width = 12)
 save_plot("Fig1_Lep_species-area_2021-02.pdf", Fig1, base_height = 16, base_width = 12)
 
 dev.off()
-######## END FIGURE 1 ########
+######## END FIGURE 2 ########
 
 
-######## FIGURE 2 ######## Numbers of global Lepidoptera species within each of the top 18 families versus numbers of non-native species in these families
+######## FIGURE 1 ######## Numbers of global Lepidoptera species within each of the top 18 families versus numbers of non-native species in these families
 Nat_2 <- Nat[,c("superfamily", "family", "world")]
 
 EstvsW <- left_join(Nat_2, Est)
@@ -154,27 +152,27 @@ df <- df[,c(1, 2, 6, 3, 4, 5, 7)] # reorder columns into a more reasonable way, 
 ### bar plots of world and non-native family diversities
 g1 <- ggplot(top18, aes(x = world, y = factor(family,level = world_order))) +
   geom_col() +
-  theme(axis.ticks.y = element_blank(), panel.background = element_rect(fill = "white")) +
+  theme(axis.ticks.y = element_blank(), 
+        panel.background = element_rect(fill = "white")) +
   scale_x_reverse() +
   scale_y_discrete(position="right") +
-  ylab("family")
+  labs(x=element_blank(),y=element_blank()) 
 
 g2 <- ggplot(top18, aes(x = sum_regions, y = factor(family, level = world_order))) +
   geom_col() +
-  labs(x="non-natives", y=element_blank()) +
-  theme(axis.text.y = element_blank(), panel.background = element_rect(fill = "white"), 
+  labs(x=element_blank(), y=element_blank()) +
+  theme(axis.text.y = element_blank(), 
+        panel.background = element_rect(fill = "white"), 
         axis.ticks.y = element_blank())
 
 
-Fig2 <- grid.arrange(g1, g2, ncol=2, widths = c(7/12, 5/12))
+Fig1 <- grid.arrange(g1, g2, ncol=2, widths = c(7/12, 5/12))
 
 save_plot("Fig2_top18_world-vs-nonnative_2021-02.png", Fig2, base_width = 22, base_height = 15, units = "cm", dpi = 400)
 save_plot("Fig2_top18_world-vs-nonnative_2021-02.pdf", Fig2, base_width = 22, base_height = 15, units = "cm", dpi = 400)
 
 dev.off()
-
-
-######## END FIGURE 2 ########
+######## END FIGURE 1 ########
 
 
 ######## FIGURE 3 - scatterplots "non-native species versus native species" per family for the 10 different regions ########
@@ -182,10 +180,8 @@ Nat_2 <- Nat[,c("superfamily", "family", "world")]
 
 EstvsW <- left_join(Nat_2, Est)
 
-
 ### select families with at least 10 established species worlwide, arranged in descending order of world species diversity
 top18 <- EstvsW[EstvsW$"sum_regions" > 9,] %>% arrange(desc(world))
-
 
 ### order top18 families
 world_order <- c("Pterophoridae", "Psychidae", "Coleophoridae", "Sphingidae", "Cosmopterygidae", "Gracillariidae", "Depressariidae", "Tineidae", "Oecophoridae", "Gelechiidae", "Lycaenidae", "Pyralidae", "Nymphalidae", "Tortricidae", "Crambidae", "Noctuidae", "Geometridae", "Erebidae")
@@ -198,8 +194,6 @@ Nat_long <- gather(Nat,"region","native",3:12) # changing from wide to long form
 ### join data from Est_long and Nat_long
 df <- Est_long %>% left_join(Nat_long)
 df <- df[,c(1, 2, 6, 3, 4, 5, 7)] # reorder columns into a more reasonable way, with "world" and "sum_regions" referring to the family, and "established" and "native" referring to the region
-
-
 
 # adding a column of predicted establishments based o n native numbers
 df_1 <- df %>% group_by(region) %>% mutate(pred = native * sum(established)/sum(native))
@@ -302,6 +296,7 @@ Fig4 <- ggplot(df_2_world, aes(x = world, y = sum_regions)) +
   coord_cartesian(ylim = c(1, 100)) + # this improves the plotting by zooming the plot to the data
   theme(panel.background = element_rect(fill = "white"), 
         panel.border = element_rect(linetype = "solid", fill = NA)) +
+  theme_bw() +
   xlab("world (spp. in family)") +
   ylab("non-natives (spp. in family)") +
   geom_text_repel(data = subset(df_2_world, sum_regions > upper*1 | sum_regions < lower*1),
@@ -349,7 +344,9 @@ Fig5 <- ggplot(df_heat2, aes(x = region, y = factor(family, level = world_order)
   scale_fill_gradient2(mid="#FBFEF9",low="#0C6291",high="#A63446", limits=c(0,0.6)) +              ### defines the colour gradient and range
   scale_x_discrete(expand=c(0,0)) +
   scale_y_discrete(expand=c(0,0)) +
-  theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 90, hjust=1, vjust=0.5))
+  theme(plot.title = element_text(hjust = 0.5), 
+        axis.text.x = element_text(angle = 90, hjust=1, vjust=0.5)) +
+  labs(y = element_blank())
 
 save_plot("Fig5_heatmap_top18_native-vs-nonnative_2021-02.png", Fig5, base_width = 21, base_height = 15, units = "cm", dpi = 600)
 save_plot("Fig5_heatmap_top18_native-vs-nonnative_2021-02.pdf", Fig5, base_width = 21, base_height = 15, units = "cm", dpi = 600)
@@ -427,45 +424,45 @@ dev.off()
 
 
 ######## FIGURE 7 - Correlation matrix ########
-Nat_2 <- Nat[,c("superfamily", "family", "world")]
-
-EstvsW <- left_join(Nat_2, Est)
-
-EstvsNatvsW <- EstvsW %>% inner_join(Nat[,2:13], by=c("family", "world"))
-
-EstvsNatvsW_2 <- EstvsNatvsW %>% select(c(-1, -2))
-EstvsNatvsW_2 <- EstvsNatvsW_2[c(1:6, 11, 8:10, 7, 12:17, 22, 19:21, 18)]
-
-corrmatrix <- cor(EstvsNatvsW_2)
-
-Fig7 <- ggcorrplot(corrmatrix, hc.order = FALSE, type = "lower", 
-  outline.col = "white", ggtheme = ggplot2::theme_gray,
-  colors = c("#6D9EC1", "white", "#E46726")) +
-  scale_fill_gradient2(mid="#FBFEF9",low="#0C6291",high="#A63446", limits=c(0, 1)) + ### defines the colour gradient and range
-  scale_x_discrete(expand=c(0,0)) +
-  scale_y_discrete(expand=c(0,0))
-
-save_plot("Fig7_corrmatrix_2021-02.png", Fig7, base_width = 16, base_height = 15, units = "cm", dpi = 600)
-save_plot("Fig7_corrmatrix_2021-02.pdf", Fig7, base_width = 16, base_height = 15, units = "cm", dpi = 600)
-
-dev.off()
-
-###
-corrdf <- corrmatrix %>%  as.data.frame() %>%  
-          mutate(variable = row.names(.)) %>% 
-          pivot_longer(cols = !variable) %>% 
-          mutate(variable = factor(variable),
-                 name = factor(name)) %>% 
-          mutate(variable = factor(variable, 
-                                   levels = rev(levels(.$variable))))
-                 
-Fig7a <- ggplot(corrdf, aes(x = variable, y = name, fill = value)) + 
-         geom_tile() +  theme_minimal() + coord_fixed() +
-         scale_fill_gradient2(mid="#FBFEF9",low="#0C6291",high="#A63446", limits=c(0, 1)) +
-         theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-                                          size = 12, hjust = 1)) 
-
-  
+# Nat_2 <- Nat[,c("superfamily", "family", "world")]
+# 
+# EstvsW <- left_join(Nat_2, Est)
+# 
+# EstvsNatvsW <- EstvsW %>% inner_join(Nat[,2:13], by=c("family", "world"))
+# 
+# EstvsNatvsW_2 <- EstvsNatvsW %>% select(c(-1, -2))
+# EstvsNatvsW_2 <- EstvsNatvsW_2[c(1:6, 11, 8:10, 7, 12:17, 22, 19:21, 18)]
+# 
+# corrmatrix <- cor(EstvsNatvsW_2)
+# 
+# Fig7 <- ggcorrplot(corrmatrix, hc.order = FALSE, type = "lower", 
+#   outline.col = "white", ggtheme = ggplot2::theme_gray,
+#   colors = c("#6D9EC1", "white", "#E46726")) +
+#   scale_fill_gradient2(mid="#FBFEF9",low="#0C6291",high="#A63446", limits=c(0, 1)) + ### defines the colour gradient and range
+#   scale_x_discrete(expand=c(0,0)) +
+#   scale_y_discrete(expand=c(0,0))
+# 
+# save_plot("Fig7_corrmatrix_2021-02.png", Fig7, base_width = 16, base_height = 15, units = "cm", dpi = 600)
+# save_plot("Fig7_corrmatrix_2021-02.pdf", Fig7, base_width = 16, base_height = 15, units = "cm", dpi = 600)
+# 
+# dev.off()
+# 
+# ###
+# corrdf <- corrmatrix %>%  as.data.frame() %>%  
+#           mutate(variable = row.names(.)) %>% 
+#           pivot_longer(cols = !variable) %>% 
+#           mutate(variable = factor(variable),
+#                  name = factor(name)) %>% 
+#           mutate(variable = factor(variable, 
+#                                    levels = rev(levels(.$variable))))
+#                  
+# Fig7a <- ggplot(corrdf, aes(x = variable, y = name, fill = value)) + 
+#          geom_tile() +  theme_minimal() + coord_fixed() +
+#          scale_fill_gradient2(mid="#FBFEF9",low="#0C6291",high="#A63446", limits=c(0, 1)) +
+#          theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+#                                           size = 12, hjust = 1)) 
+# 
+#   
 ######## END FIGURE 7 ########
 
 

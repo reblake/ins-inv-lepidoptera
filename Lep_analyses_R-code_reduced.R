@@ -128,29 +128,19 @@ save_plot("Fig1_Lep_species-area_2021-02.png", Fig1, base_height = 16, base_widt
 save_plot("Fig1_Lep_species-area_2021-02.pdf", Fig1, base_height = 16, base_width = 12)
 
 dev.off()
-
-
 ######## END FIGURE 1 ########
 
 
-
-
-
 ######## FIGURE 2 ######## Numbers of global Lepidoptera species within each of the top 18 families versus numbers of non-native species in these families
-
-
 Nat_2 <- Nat[,c("superfamily", "family", "world")]
 
 EstvsW <- left_join(Nat_2, Est)
 
-
 ### select families with at least 10 established species worlwide, arranged in descending order of world species diversity
 top18 <- EstvsW[EstvsW$"sum_regions" > 9,] %>% arrange(desc(world))
 
-
 ### order top18 families
 world_order <- c("Pterophoridae", "Psychidae", "Coleophoridae", "Sphingidae", "Cosmopterygidae", "Gracillariidae", "Depressariidae", "Tineidae", "Oecophoridae", "Gelechiidae", "Lycaenidae", "Pyralidae", "Nymphalidae", "Tortricidae", "Crambidae", "Noctuidae", "Geometridae", "Erebidae")
-
 
 Est_long <- gather(top18,"region","established",4:13) # changing from wide to long format
 
@@ -185,11 +175,6 @@ dev.off()
 
 
 ######## END FIGURE 2 ########
-
-
-
-
-
 
 
 ######## FIGURE 3 - scatterplots "non-native species versus native species" per family for the 10 different regions ########
@@ -329,25 +314,16 @@ dev.off()
 ######## END FIGURE 4 ########
 
 
-
-
-
-
 ######## FIGURE 5 - HEATMAP ########
-
-
 Nat_2 <- Nat[,c("superfamily", "family", "world")]
 
 EstvsW <- left_join(Nat_2, Est)
 
-
 ### select families with at least 10 established species worlwide, arranged in descending order of world species diversity
 top18 <- EstvsW[EstvsW$"sum_regions" > 9,] %>% arrange(desc(world))
 
-
 ### order top18 families
 world_order <- c("Pterophoridae", "Psychidae", "Coleophoridae", "Sphingidae", "Cosmopterygidae", "Gracillariidae", "Depressariidae", "Tineidae", "Oecophoridae", "Gelechiidae", "Lycaenidae", "Pyralidae", "Nymphalidae", "Tortricidae", "Crambidae", "Noctuidae", "Geometridae", "Erebidae")
-
 
 Est_long <- gather(top18,"region","established",4:13) # changing from wide to long format
 
@@ -356,7 +332,6 @@ Nat_long <- gather(Nat,"region","native",3:12) # changing from wide to long form
 ### join data from Est_long and Nat_long
 df <- Est_long %>% left_join(Nat_long)
 df <- df[,c(1, 2, 6, 3, 4, 5, 7)] # reorder columns into a more reasonable way, with "world" and "sum_regions" referring to the family, and "established" and "native" referring to the region
-
 
 total <- read_tsv("totalLep_2021-01-25.txt")
 
@@ -380,13 +355,7 @@ save_plot("Fig5_heatmap_top18_native-vs-nonnative_2021-02.png", Fig5, base_width
 save_plot("Fig5_heatmap_top18_native-vs-nonnative_2021-02.pdf", Fig5, base_width = 21, base_height = 15, units = "cm", dpi = 600)
 
 dev.off()
-
-
 ######## END FIGURE 5 ########
-
-
-
-
 
 
 ######## FIGURE 6 - RDA ordination ########
@@ -454,23 +423,13 @@ save_plot("Fig6_RDA-ordination_2021-02.png", Fig6, base_width = 22, base_height 
 save_plot("Fig6_RDA-ordination_2021-02.pdf", Fig6, base_width = 22, base_height = 15, units = "cm", dpi = 600)
 
 dev.off()
-
-
 ######## END FIGURE 6 ########
 
 
-
-
-
-
 ######## FIGURE 7 - Correlation matrix ########
-
-
 Nat_2 <- Nat[,c("superfamily", "family", "world")]
 
 EstvsW <- left_join(Nat_2, Est)
-
-
 
 EstvsNatvsW <- EstvsW %>% inner_join(Nat[,2:13], by=c("family", "world"))
 
@@ -482,7 +441,7 @@ corrmatrix <- cor(EstvsNatvsW_2)
 Fig7 <- ggcorrplot(corrmatrix, hc.order = FALSE, type = "lower", 
   outline.col = "white", ggtheme = ggplot2::theme_gray,
   colors = c("#6D9EC1", "white", "#E46726")) +
-  scale_fill_gradient2(mid="#FBFEF9",low="#0C6291",high="#A63446", limits=c(0, 1)) +              ### defines the colour gradient and range
+  scale_fill_gradient2(mid="#FBFEF9",low="#0C6291",high="#A63446", limits=c(0, 1)) + ### defines the colour gradient and range
   scale_x_discrete(expand=c(0,0)) +
   scale_y_discrete(expand=c(0,0))
 
@@ -491,8 +450,22 @@ save_plot("Fig7_corrmatrix_2021-02.pdf", Fig7, base_width = 16, base_height = 15
 
 dev.off()
 
+###
+corrdf <- corrmatrix %>%  as.data.frame() %>%  
+          mutate(variable = row.names(.)) %>% 
+          pivot_longer(cols = !variable) %>% 
+          mutate(variable = factor(variable),
+                 name = factor(name)) %>% 
+          mutate(variable = factor(variable, 
+                                   levels = rev(levels(.$variable))))
+                 
+Fig7a <- ggplot(corrdf, aes(x = variable, y = name, fill = value)) + 
+         geom_tile() +  theme_minimal() + coord_fixed() +
+         scale_fill_gradient2(mid="#FBFEF9",low="#0C6291",high="#A63446", limits=c(0, 1)) +
+         theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+                                          size = 12, hjust = 1)) 
 
-
+  
 ######## END FIGURE 7 ########
 
 

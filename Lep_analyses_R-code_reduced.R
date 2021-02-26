@@ -362,20 +362,28 @@ df_heat <- df %>% left_join(total, by = "region")
 
 df_heat1 <- df_heat %>% mutate(heat_native = sqrt(native/native_region), heat_nonnative = sqrt(established/established_region))
 
-df_heat2 <- df_heat1 %>% pivot_longer(11:12, names_to = "heat_subset", values_to = "heat_count")
+df_heat2 <- df_heat1 %>% 
+            pivot_longer(11:12, names_to = "heat_subset", values_to = "heat_count")
 
 df_heat2 <- df_heat2[c(1, 2, 6, 3, 7, 11, 12, 8, 9, 10, 5, 4)]
 
-Fig5 <- ggplot(df_heat2, aes(x = region, y = factor(family, level = world_order))) +
-  geom_tile(aes(fill = heat_count)) + 
-  facet_wrap(~heat_subset) +
-  scale_fill_gradient2(mid="#FBFEF9",low="#0C6291",high="#A63446", limits=c(0,0.6)) +              ### defines the colour gradient and range
-  scale_x_discrete(expand=c(0,0)) +
-  scale_y_discrete(expand=c(0,0)) +
-  theme(plot.title = element_text(hjust = 0.5), 
-        axis.text.x = element_text(angle = 90, hjust=1, vjust=0.5)) +
-  labs(y = element_blank())
+# This creates a new dummy column with better facet labels
+df_heat2 <- df_heat2 %>% 
+            mutate(facet = ifelse(heat_subset == "heat_native", "Native", "Non-Native"))
 
+Fig5 <- ggplot(df_heat2, aes(x = region, y = factor(family, level = world_order))) +
+        geom_tile(aes(fill = heat_count)) + 
+        facet_wrap(~facet) +
+        scale_fill_gradient2(mid="#FBFEF9",low="#0C6291",high="#A63446", limits=c(0,0.6)) +              ### defines the colour gradient and range
+        scale_x_discrete(expand=c(0,0)) +
+        scale_y_discrete(expand=c(0,0)) +
+        labs(y = element_blank()) +
+        theme(plot.title = element_text(hjust = 0.5), 
+              axis.text.x = element_text(angle = 90, hjust=1, vjust=0.5),
+              strip.background = element_rect(colour = "white", fill = "white"),
+              strip.text.x = element_text(size = 10),
+              legend.title = element_blank()) 
+  
 save_plot("Fig5_heatmap_top18_native-vs-nonnative_2021-02.png", Fig5, base_width = 21, base_height = 15, units = "cm", dpi = 600)
 save_plot("Fig5_heatmap_top18_native-vs-nonnative_2021-02.pdf", Fig5, base_width = 21, base_height = 15, units = "cm", dpi = 600)
 
